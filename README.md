@@ -48,8 +48,8 @@ With that in mind here is a basic scenario:
       Errplane.report("controllers/controller2");
       Errplane.report("controllers/controller3");
 
-      // send the reports to the Errplane server
-      Errplane.flush();
+      // send the reports to the Errplane server - flush also tells you how many were sent
+      int numReportsSent = Errplane.flush();
 
       // time a long running task or potential bottleneck
       TimerTask timer = Errplane.startTimer("longTask");
@@ -59,7 +59,7 @@ With that in mind here is a basic scenario:
       timer.finish();
 
       // flush it
-      Errplane.flush();
+      int numReportsSent = Errplane.flush();
       
     }
 
