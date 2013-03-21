@@ -4,7 +4,7 @@ This library integrates your applications with [Errplane](http://errplane.com), 
 
 Installing the library
 ----------------------
-The easiest way to get started is to download the latest prebuilt jar file from [errplane-<version>.jar](https://github.com/errplane/errplane-java/tree/master/dist).
+The easiest way to get started is to download the latest prebuilt jar file from [errplane-\<version\>.jar](https://github.com/errplane/errplane-java/tree/master/dist).
 The library contains no 3rd party dependencies so you should be able to add it to your classpath and go.
 
 Initializing the library
@@ -23,7 +23,7 @@ success is true if none of the values passed in were null and a URL was successf
 
 Additionally, to set a session user to better trace exceptions reported to Errplane the following can (and should) be used:
 
-    Errplane.setSessionUser:("string that identifies the current user");
+    Errplane.setSessionUser("string that identifies the current user");
 
 Basic Usage Scenario
 --------------------
