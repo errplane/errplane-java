@@ -1,0 +1,49 @@
+package com.errplane.examples.standalone;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import com.errplane.api.Errplane;
+import com.errplane.api.TimerTask;
+
+public class errplaneDriver {
+
+	/**
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		
+		// try to initialize Errplane
+		if (!initErrplane()) {
+			System.out.println("Errplane initialization failed!");
+			System.out.println("Make sure you have set the environment variables: EP_APP, EP_API, and EP_ENV!");
+			return;
+		}
+		
+		// fire up the flusher
+		ExecutorService es = Executors.newSingleThreadExecutor();
+		es.execute(new ErrplaneFlusher());
+		
+		// do your application thing and report to Errplane
+		TimerTask timer = Errplane.startTimer("sampleDriverTimerTest");
+		
+		for (int i = 0; i < 100; i++) {
+			Errplane.report("errplane-java/sampleDriverTest"+i);
+		}
+		
+		timer.finish();
+		
+		// stop the flushing
+		es.shutdownNow();
+		
+	}
+	
+	private static boolean initErrplane() {
+
+		String appKey = System.getenv("EP_APP");
+		String apiKey = System.getenv("EP_API");
+		String env = System.getenv("EP_ENV");
+		return Errplane.init(appKey, apiKey, env);
+	}
+
+}

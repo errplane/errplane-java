@@ -1,82 +1,135 @@
 package com.errplane.api;
 
-import junit.framework.TestCase;
+import static org.junit.Assert.*;
 
-public class ErrplaneTest extends TestCase {
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.junit.Assert.*;
 
-	protected void setUp() throws Exception {
-		super.setUp();
+public class ErrplaneTest {
+
+	@Before
+	public void setUp() throws Exception {
+		String appKey = System.getenv("EP_APP");
+		String apiKey = System.getenv("EP_API");
+		String env = System.getenv("EP_ENV");
+		assertTrue("Environemnt variables not set: EP_APP, EP_API, EP_ENV!",
+				Errplane.init(appKey, apiKey, env));
 	}
 
-	protected void tearDown() throws Exception {
-		super.tearDown();
+	@After
+	public void tearDown() throws Exception {
+		Errplane.flush();
 	}
 
-	public void testInit() {
+	@Test
+	@Ignore
+	public void init() {
 		fail("Not yet implemented");
 	}
 
-	public void testSetUrl() {
+	@Test
+	@Ignore
+	public void setUrl() {
 		fail("Not yet implemented");
 	}
 
-	public void testExceptionHashOverride() {
+	@Test
+	@Ignore
+	public void exceptionHashOverride() {
 		fail("Not yet implemented");
 	}
 
-	public void testSetSessionUser() {
+	@Test
+	@Ignore
+	public void setSessionUser() {
 		fail("Not yet implemented");
 	}
 
-	public void testFlush() {
+	@Test
+	@Ignore
+	public void flush() {
 		fail("Not yet implemented");
 	}
 
-	public void testBreadcrumb() {
+	@Test
+	@Ignore
+	public void breadcrumb() {
 		fail("Not yet implemented");
 	}
 
-	public void testReportString() {
+	@Test
+	public void reportString() {
+		assertTrue("Report with name failed!", Errplane.report("unittest_errplane-java/testReport"));
+		
+		Errplane.flush();
+		
+		// now try batch sends
+		for (int i = 0; i < 10; i++) {
+			assertTrue("Report batch sends failed",
+					Errplane.report(("unittest_errplane-java/testReportBatch"+i)));
+		}
+	}
+
+	@Test
+	@Ignore
+	public void reportStringInt() {
 		fail("Not yet implemented");
 	}
 
-	public void testReportStringInt() {
+	@Test
+	@Ignore
+	public void reportStringDouble() {
 		fail("Not yet implemented");
 	}
 
-	public void testReportStringDouble() {
+	@Test
+	@Ignore
+	public void reportStringString() {
 		fail("Not yet implemented");
 	}
 
-	public void testReportStringString() {
+	@Test
+	@Ignore
+	public void reportStringIntString() {
 		fail("Not yet implemented");
 	}
 
-	public void testReportStringIntString() {
+	@Test
+	@Ignore
+	public void reportStringDoubleString() {
 		fail("Not yet implemented");
 	}
 
-	public void testReportStringDoubleString() {
+	@Test
+	@Ignore
+	public void reportExceptionException() {
 		fail("Not yet implemented");
 	}
 
-	public void testReportExceptionException() {
+	@Test
+	@Ignore
+	public void reportExceptionExceptionString() {
 		fail("Not yet implemented");
 	}
 
-	public void testReportExceptionExceptionString() {
+	@Test
+	@Ignore
+	public void reportExceptionWithHash() {
 		fail("Not yet implemented");
 	}
 
-	public void testReportExceptionWithHash() {
+	@Test
+	@Ignore
+	public void reportExceptionExceptionStringString() {
 		fail("Not yet implemented");
 	}
 
-	public void testReportExceptionExceptionStringString() {
-		fail("Not yet implemented");
-	}
-
-	public void testStartTimer() {
+	@Test
+	@Ignore
+	public void startTimer() {
 		fail("Not yet implemented");
 	}
 

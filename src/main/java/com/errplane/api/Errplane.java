@@ -1,11 +1,14 @@
 package com.errplane.api;
 
+import java.io.ByteArrayOutputStream;
+import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.errplane.util.*;
+import com.errplane.http.*;
 
 /**
  * This class is the entrypoint for the Errplane library.  Use it to report
@@ -99,10 +102,38 @@ public class Errplane {
 	}
 
 	/**
-	 Try to clear any outstanding Errplane reports.
+	 Try to clear any outstanding Errplane reports.  Returns the number of
+	 reports sent.
 	 */
-	public static void flush() {
-		// TODO - send stuff
+	public static synchronized int flush() {
+		int numRemoved = 0;
+		if (!reportQueue.isEmpty() && (errplaneUrl != null)) {
+			int bytesWritten = 0;
+			HTTPPostHelper postHelper = new HTTPPostHelper();
+			OutputStream os = postHelper.getOutputStream(errplaneUrl);
+			try {
+				while (!reportQueue.isEmpty()) {
+					ReportHelper rh = reportQueue.remove();
+					numRemoved++;
+					String rptBody = rh.getReportBody();
+					System.out.println("sending: " + rptBody);
+					bytesWritten += rptBody.length();
+					os.write(rh.getReportBody().getBytes());
+					os.write(10);
+					bytesWritten++;
+				}
+			}
+			catch (Exception e) {
+				e.printStackTrace();
+			}
+
+			if (numRemoved > 0) {
+				reportCount.addAndGet((numRemoved*-1));
+				postHelper.sendPost(bytesWritten);
+				System.out.println("reports left: " + reportQueue.size());
+			}
+		}
+		return numRemoved;
 	}
 
 	/**

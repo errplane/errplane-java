@@ -4,7 +4,7 @@
 
   <groupId>errplane-java</groupId>
   <artifactId>errplane</artifactId>
-  <version>1.0</version>
+  <version>0.7</version>
   <packaging>jar</packaging>
 
   <name>errplane-java</name>
@@ -14,11 +14,41 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
+  <build> 
+    <plugins>
+      <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>2.6</version>
+        <executions>
+          <execution>
+            <id>copy-resources</id>
+            <!-- here the phase you need -->
+            <phase>package</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>dist</outputDirectory>
+              <resources>          
+                <resource>
+                  <directory>target</directory>
+                  <includes>
+                  	<include>*.jar</include>
+                  </includes>
+                </resource>
+              </resources>              
+            </configuration>            
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
   <dependencies>
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>3.8.1</version>
+      <version>4.11</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
