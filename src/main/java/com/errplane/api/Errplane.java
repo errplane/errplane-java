@@ -19,15 +19,15 @@ import com.errplane.http.*;
  */
 public class Errplane {
 	
-	private static final int RPT_CAPACITY = 5000;
-	
-	private static final int BC_CAPACITY = 10;
-	
 	private static ExceptionHashInterface hashFunc = new DefaultExceptionHash();
 	
 	private static AtomicInteger reportCount = new AtomicInteger(0);
 	
 	private static AtomicInteger breadcrumbCount = new AtomicInteger(0);
+	
+	private static AtomicInteger reportCapacity = new AtomicInteger(10000);
+	
+	private static AtomicInteger breadcrumbCapacity = new AtomicInteger(10);
 	
 	private static ConcurrentLinkedQueue<ReportHelper> reportQueue =
 			new ConcurrentLinkedQueue<ReportHelper>();
@@ -82,6 +82,18 @@ public class Errplane {
 		return true;
 	}
 
+	public static int getCount() {
+		return reportCount.get();
+	}
+	
+	public static void setReportCapacity(int capacity) {
+		reportCapacity.set(capacity);
+	}
+
+	public static void setBreadcrumbCapacity(int capacity) {
+		breadcrumbCapacity.set(capacity);
+	}
+
 	/**
 	 Overrides the default exception hashing behavior.
 	 
@@ -112,11 +124,10 @@ public class Errplane {
 			HTTPPostHelper postHelper = new HTTPPostHelper();
 			OutputStream os = postHelper.getOutputStream(errplaneUrl);
 			try {
-				while (!reportQueue.isEmpty()) {
+				while (!reportQueue.isEmpty() && (numRemoved < 200)) {
 					ReportHelper rh = reportQueue.remove();
 					numRemoved++;
 					String rptBody = rh.getReportBody();
-					System.out.println("sending: " + rptBody);
 					bytesWritten += rptBody.length();
 					os.write(rh.getReportBody().getBytes());
 					os.write(10);
@@ -130,7 +141,6 @@ public class Errplane {
 			if (numRemoved > 0) {
 				reportCount.addAndGet((numRemoved*-1));
 				postHelper.sendPost(bytesWritten);
-				System.out.println("reports left: " + reportQueue.size());
 			}
 		}
 		return numRemoved;
@@ -311,6 +321,9 @@ public class Errplane {
 	 * @return true if Errplane reported successfully.
 	 */
 	public static TimerTask startTimer(String name) {
+		if ((name == null) || (name.length() >= 250)) {
+			return null;
+		}
 		return (new TimerTask(name));
 	}
 }

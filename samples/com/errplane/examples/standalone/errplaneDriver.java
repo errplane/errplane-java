@@ -21,20 +21,20 @@ public class errplaneDriver {
 		}
 		
 		// fire up the flusher
-		ExecutorService es = Executors.newSingleThreadExecutor();
-		es.execute(new ErrplaneFlusher());
+		ErrplaneFlusher flusher = new ErrplaneFlusher();
+		flusher.startFlusher();
 		
 		// do your application thing and report to Errplane
 		TimerTask timer = Errplane.startTimer("sampleDriverTimerTest");
 		
-		for (int i = 0; i < 100; i++) {
-			Errplane.report("errplane-java/sampleDriverTest"+i);
+		for (int i = 0; i < 400; i++) {
+			Errplane.report("errplane-java/sampleDriverTest");
 		}
 		
 		timer.finish();
 		
-		// stop the flushing
-		es.shutdownNow();
+		// stop the flusher
+		flusher.stopFlusher();
 		
 	}
 	

@@ -28,7 +28,6 @@ public class HTTPPostHelper {
 			}
 			return false;
 		}
-		//connection.setRequestProperty("Content-Length", "" + Integer.toString(numBytes));
 		
 		try {
 			connection.getOutputStream().flush();
