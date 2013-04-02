@@ -5,7 +5,9 @@ This library integrates your applications with [Errplane](http://errplane.com), 
 Installing the library
 ----------------------
 The easiest way to get started is to download the latest prebuilt jar file from [errplane-\<version\>.jar](https://github.com/errplane/errplane-java/tree/master/dist).
-The library contains no 3rd party dependencies so you should be able to add it to your classpath and go.
+The library contains no 3rd party dependencies so you should be able to add it to your classpath and go.  The main import you'll use is:
+
+    import com.errplane.api.Errplane;
 
 Example Code
 ------------
