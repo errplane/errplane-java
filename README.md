@@ -11,7 +11,7 @@ The library contains no 3rd party dependencies so you should be able to add it t
 
 Example Code
 ------------
-The example code can be found in [Example Code](https://github.com/errplane/errplane-java/tree/master/samples/com/errplane/examples).  The example code is not built into the library as it will (eventually) contain environment specific code.
+The example code can be found in [Example Code](https://github.com/errplane/errplane-java/tree/master/samples/com/errplane/examples).  The example code is not built into the library since it contains environment specific code.
 It is intended to be used as a reference and directly used in your project if one of the available samples fits your usage scenario and environment.
 
 Initializing the library
