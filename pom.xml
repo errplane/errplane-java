@@ -4,7 +4,6 @@
 
   <groupId>errplane-java</groupId>
   <artifactId>errplane</artifactId>
-  <version>0.7</version>
   <packaging>jar</packaging>
 
   <name>errplane-java</name>
@@ -52,4 +51,5 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
+  <version>1.0</version>
 </project>

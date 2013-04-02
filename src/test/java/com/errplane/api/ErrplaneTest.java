@@ -66,71 +66,167 @@ public class ErrplaneTest {
 		
 		Errplane.flush();
 		
-		// now try batch sends
+		// now try batch sends and using specified time, not 'now'
 		for (int i = 0; i < 10; i++) {
 			assertTrue("Report batch sends failed",
 					Errplane.report(("unittest_errplane-java/testReportBatch"+i)));
 		}
+		
+		try {
+			Thread.sleep(30001);
+		}
+		catch (Exception e){}
+		
+		Errplane.flush();
+		
+		// create a name around the 250 character limit and test for success/failure
+		String baseName = "unittest_errplane-java/testReport/nameLimits";
+		for (int i = baseName.length(); i < 246; i++) {
+			baseName += "E";
+		}
+		String name = baseName + "249";
+		assertTrue("Report failed with name length " + name.length() + " characters.", Errplane.report(name));
+		
+		name = baseName + "E250";
+		
+		assertFalse("Report succeeded with name length " + name.length() + 
+				" characters!", Errplane.report(name));
+		
+		name = baseName + "EE251";
+		
+		assertFalse("Report succeeded with name length " + name.length() + 
+				" characters!", Errplane.report(name));
+		
+		assertFalse("Report succeeded with null name!", Errplane.report(null));
+		
 	}
 
 	@Test
-	@Ignore
 	public void reportStringInt() {
-		fail("Not yet implemented");
+		assertTrue("Report with name and int failed!",
+				Errplane.report("unittest_errplane-java/testReportInt", 12345));
 	}
 
 	@Test
-	@Ignore
 	public void reportStringDouble() {
-		fail("Not yet implemented");
+		assertTrue("Report with name and double failed!",
+				Errplane.report("unittest_errplane-java/testReportDouble", 123.45));
 	}
 
 	@Test
-	@Ignore
 	public void reportStringString() {
-		fail("Not yet implemented");
+		assertTrue("Report with name and context failed!",
+				Errplane.report("unittest_errplane-java/testReportContext", "login"));
 	}
 
 	@Test
-	@Ignore
 	public void reportStringIntString() {
-		fail("Not yet implemented");
+		assertTrue("Report with name, int, and context failed!",
+				Errplane.report("unittest_errplane-java/testReportIntContext", 2557325, "volume"));
 	}
 
 	@Test
-	@Ignore
 	public void reportStringDoubleString() {
-		fail("Not yet implemented");
+		assertTrue("Report with name, double, and context failed!",
+				Errplane.report("unittest_errplane-java/testReportDoubleContext", 1174.3, "mssgs/s"));
 	}
 
 	@Test
-	@Ignore
 	public void reportExceptionException() {
-		fail("Not yet implemented");
+		try {
+			throw new NullPointerException("TestNPE");
+		}
+		catch (NullPointerException e) {
+			assertTrue("Report Exception failed!",
+					Errplane.reportException(e, Errplane.getExceptionData
+					("unittest_errplane-java", "testException", "junit")));
+		}
+		
+		Errplane.breadcrumb("now");
+		Errplane.breadcrumb("some");
+		Errplane.breadcrumb("breadcrumbs");
+
+		try {
+			throw new ClassCastException("Just some BCs, don't worry about it!");
+		}
+		catch (ClassCastException e) {
+			assertTrue("Report Exception failed!",
+					Errplane.reportException(e, Errplane.getExceptionData
+					("unittest_errplane-java", "testException", "junit")));
+		}
+		
 	}
 
 	@Test
-	@Ignore
 	public void reportExceptionExceptionString() {
-		fail("Not yet implemented");
+		try {
+			throw new NullPointerException("TestNPE custom data");
+		}
+		catch (NullPointerException e) {
+			assertTrue("Report Exception failed!",
+					Errplane.reportException(e, "{\"user\":\"junit\"}", Errplane.getExceptionData
+					("unittest_errplane-java", "testExceptionCustomData", "junit")));
+			assertTrue("Report Exception failed!",
+					Errplane.reportException(e, "just some custom data", Errplane.getExceptionData
+					("unittest_errplane-java", "testExceptionCustomData", "junit")));
+		}
 	}
 
 	@Test
-	@Ignore
 	public void reportExceptionWithHash() {
-		fail("Not yet implemented");
+		try {
+			throw new NullPointerException("TestNPE Hash");
+		}
+		catch (NullPointerException e) {
+			assertTrue("Report Exception failed!",
+					Errplane.reportExceptionWithHash(e, "NPEHash", Errplane.getExceptionData
+					("unittest_errplane-java", "testExceptionWithHash", "junit")));
+		}
 	}
 
 	@Test
-	@Ignore
 	public void reportExceptionExceptionStringString() {
-		fail("Not yet implemented");
+		try {
+			throw new NullPointerException("TestNPE with Hash and custom data");
+		}
+		catch (NullPointerException e) {
+			assertTrue("Report Exception failed!",
+					Errplane.reportException(e, "group this hash", "{\"user\":\"junit\"}", Errplane.getExceptionData
+					("unittest_errplane-java", "testExceptionHashAndCustomData", "junit")));
+		}
 	}
 
 	@Test
-	@Ignore
 	public void startTimer() {
-		fail("Not yet implemented");
+		TimerTask tt = Errplane.startTimer(null);
+		assertNull("", tt);
+		
+		// create a name around the 250 character limit and test for success/failure
+		String baseName = "unittest_errplane-java/testStartTimer/nameLimits";
+		for (int i = baseName.length(); i < 246; i++) {
+			baseName += "E";
+		}
+		String name = baseName + "249";
+		tt = Errplane.startTimer(name);
+		assertNotNull("startTimer failed with name length " + name.length() + " characters.", tt);
+		
+		name = baseName + "E250";
+		
+		tt = Errplane.startTimer(name);
+		assertNull("startTimer succeeded with name length " + name.length() + " characters.", tt);
+		
+		name = baseName + "EE251";
+		
+		tt = Errplane.startTimer(name);
+		assertNull("startTimer succeeded with name length " + name.length() + " characters.", tt);
+		
+		tt = Errplane.startTimer("unittest_errplane-java/timerTest");
+		assertNotNull("TimerTask is null!", tt);
+		try {
+			Thread.sleep(555);
+		}
+		catch (Exception e) {}
+		tt.finish();
 	}
 
 }

@@ -56,16 +56,15 @@ public class ReportHelper {
 		// if its been at least 30 seconds since creating this report, send the
 		//   original time, otherwise send 'now'
 		if ((now.getTime()-time) > 30000) {
-			rptBody += time;
+			rptBody += (long)(time/1000);
 		}
 		else {
 			rptBody += "now";
 		}
 		
 		if (context != null) {
-			rptBody += " " + context;
+			rptBody += " " + Base64.encode(context);
 		}
-		
 		return rptBody;
 	}
 }

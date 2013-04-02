@@ -2,8 +2,14 @@ package com.errplane.api;
 
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -112,6 +118,42 @@ public class Errplane {
 	public static synchronized void setSessionUser(String sessUser) {
 		sessionUser = sessUser;
 	}
+	
+	/**
+	 * Converts the passed in bytes to a hex String
+	 * @param bytes the bytes to convert to hex
+	 * @return converted hex String
+	 */
+	public static String getHex(byte[] bytes) {
+	    final char[] hexArray = {'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
+	    char[] hexChars = new char[bytes.length * 2];
+	    int v;
+	    for ( int j = 0; j < bytes.length; j++ ) {
+	        v = bytes[j] & 0xFF;
+	        hexChars[j * 2] = hexArray[v >>> 4];
+	        hexChars[j * 2 + 1] = hexArray[v & 0x0F];
+	    }
+	    return new String(hexChars);
+	}
+	
+	private static String getSha(String toSha) {
+		String shaStr = null;
+
+	    MessageDigest md = null;
+	    try {
+	        md = MessageDigest.getInstance("SHA-1");
+	    }
+	    catch(NoSuchAlgorithmException e) {
+	        e.printStackTrace();
+	    } 
+	    try {
+			shaStr = getHex(md.digest(toSha.getBytes("UTF-8")));
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+		
+		return shaStr;
+	}
 
 	/**
 	 Try to clear any outstanding Errplane reports.  Returns the number of
@@ -129,7 +171,7 @@ public class Errplane {
 					numRemoved++;
 					String rptBody = rh.getReportBody();
 					bytesWritten += rptBody.length();
-					os.write(rh.getReportBody().getBytes());
+					os.write(rptBody.getBytes());
 					os.write(10);
 					bytesWritten++;
 				}
@@ -155,6 +197,18 @@ public class Errplane {
 	 */
 	public static void breadcrumb(String bc) {
 		breadcrumbQueue.add(bc);
+	}
+	
+	/**
+	 * Convenience method for creating a ExceptionData object for use in an
+	 * Exception report.
+	 * @param c the controller where the Exception occurred
+	 * @param a the action where the Exception occurred
+	 * @param u the user agent that initiated the Exception
+	 * @return a new ExceptionData object to pass along to the Exception report
+	 */
+	public static ExceptionData getExceptionData(String c, String a, String u) {
+		return new ExceptionData(c, a, u);
 	}
 	
 	private static void addReportHelper
@@ -274,10 +328,11 @@ public class Errplane {
 	/**
 	 Posts an exception using either the default hash method or the overridden one (if provided).
 	 @param ex the exception to report.
+	 @param exData the additional exception data to be sent with the report
 	 @return false if Errplane was not previously initialized.
 	 */
-	public static boolean reportException(Exception ex) {
-		return false;
+	public static boolean reportException(Exception ex, ExceptionData exData) {
+		return reportException(ex, null, null, exData);
 	}
 
 	/**
@@ -286,20 +341,24 @@ public class Errplane {
 	 @param ex the exception to report.
 	 @param customData the NSString to place in the custom_data section of the exception detail
 	        reporting to Errplane.
+	 @param exData the additional exception data to be sent with the report
 	 @return false if Errplane was not previously initialized.
 	 */
-	public static boolean reportException(Exception ex, String customData) {
-		return false;
+	public static boolean reportException(Exception ex, String customData,
+			ExceptionData exData) {
+		return reportException(ex, null, customData, exData);
 	}
 
 	/**
 	 Posts an exception using either the hash passed in to group the exception.
 	 @param ex the exception to report.
 	 @param hash the overridden hash to use rather than the default.
+	 @param exData the additional exception data to be sent with the report
 	 @return false if Errplane was not previously initialized or the name exceeds 249 characters.
 	 */
-	public static boolean reportExceptionWithHash(Exception ex, String hash) {
-		return false;
+	public static boolean reportExceptionWithHash(Exception ex, String hash,
+			ExceptionData exData) {
+		return reportException(ex, hash, null, exData);
 	}
 
 	/**
@@ -308,10 +367,30 @@ public class Errplane {
 	 @param hash the overridden hash to use rather than the default.
 	 @param customData the NSString to place in the custom_data section of the exception detail
 	 reporting to Errplane.
+	 @param exData the additional exception data to be sent with the report
 	 @return false if Errplane was not previously initialized.
 	 */
-	public static boolean reportException(Exception ex, String hash, String customData) {
-		return false;
+	public static boolean reportException(Exception ex, String hash,
+			String customData, ExceptionData exData) {
+		if (ex == null) {
+			return false;
+		}
+		
+		String shaHash = null;
+		
+		if (hash != null) {
+			shaHash = getSha(hash);
+		}
+		else {
+			shaHash = getSha(hashFunc.hash(ex));
+		}
+		
+		String exceptionName = "exceptions/" + shaHash;
+		
+		ExceptionHelper helper = new ExceptionHelper
+				(ex, exData, breadcrumbQueue.toArray(), customData);
+		
+		return report(exceptionName, helper.createExceptionDetail());
 	}
 	
 	/**
