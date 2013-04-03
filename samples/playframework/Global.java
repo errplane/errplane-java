@@ -5,9 +5,9 @@ import play.Application;
 import play.GlobalSettings;
 
 public class Global extends GlobalSettings {
-	
+
 	private ErrplaneFlusher flusher;
-	
+
 	@Override
 	public void onStart(Application app) {
 
@@ -24,14 +24,14 @@ public class Global extends GlobalSettings {
 
 		// fire up the heartbeat at the default 30 second interval
 		flusher.heartbeat("errplane-java/playApplicationHB");
-		
-        Errplane.report("errplane-java/playApplicationStartup");
+
+		Errplane.report("errplane-java/playApplicationStartup");
 	}  
 
 	@Override
 	public void onStop(Application app) {
-        Errplane.report("errplane-java/playApplicationShutdown");
-        
+		Errplane.report("errplane-java/playApplicationShutdown");
+
 		// clear Errplane reports
 		flusher.stopFlusher();
 	}
