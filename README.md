@@ -37,6 +37,7 @@ Standalone Initialization Example
 This example shows how to initialize Errplane and startup the [ErrplaneFlusher](https://github.com/errplane/errplane-java/blob/master/samples/standalone/ErrplaneFlusher.java) to send reports automatically
 to Errplane.  It is important to remember that none of the samples (e.g. ErrplaneFlusher) are included in the Errplane jar.  To use the flusher simply copy-paste from the linked code.  Also, this example
 initialization code can be found in [errplaneDriver](https://github.com/errplane/errplane-java/blob/master/samples/standalone/errplaneDriver.java).
+The example assumes you have the [errplane jar](https://github.com/errplane/errplane-java/tree/master/dist) in your classpath.
 
     import com.errplane.api.Errplane;
     import com.errplane.examples.standalone.ErrplaneFlusher;
@@ -82,8 +83,8 @@ initialization code can be found in [errplaneDriver](https://github.com/errplane
     
 Play Framework 2.0+ Initialization Example
 ------------------------------------------
-This example shows how to initialize Errplane and startup the [ErrplaneFlusher](https://github.com/errplane/errplane-java/blob/master/samples/standalone/ErrplaneFlusher.java) to send reports automatically
-to Errplane within the Play Framework.  It is important to remember that none of the samples (e.g. ErrplaneFlusher) are included in the Errplane jar.  To use the flusher simply copy-paste from the linked code.  Also, this example
+This example shows how to initialize Errplane and startup the [ErrplaneFlusher](https://github.com/errplane/errplane-java/blob/master/samples/standalone/ErrplaneFlusher.java) to flush reports automatically
+within the Play Framework.  It is important to remember that none of the samples (e.g. ErrplaneFlusher) are included in the Errplane jar.  To use the flusher simply copy-paste from the linked code.  Also, this example
 initialization code can be found in [Global](https://github.com/errplane/errplane-java/blob/master/samples/playframework/Global.java).  The example assumes you have the [errplane jar](https://github.com/errplane/errplane-java/tree/master/dist)
 in your classpath.
 
