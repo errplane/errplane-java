@@ -79,6 +79,62 @@ initialization code can be found in [errplaneDriver](https://github.com/errplane
             return Errplane.init(appKey, apiKey, env);
         }
     }
+    
+Play Framework 2.0+ Initialization Example
+------------------------------------------
+This example shows how to initialize Errplane and startup the [ErrplaneFlusher](https://github.com/errplane/errplane-java/blob/master/samples/standalone/ErrplaneFlusher.java) to send reports automatically
+to Errplane within the Play Framework.  It is important to remember that none of the samples (e.g. ErrplaneFlusher) are included in the Errplane jar.  To use the flusher simply copy-paste from the linked code.  Also, this example
+initialization code can be found in [Global](https://github.com/errplane/errplane-java/blob/master/samples/playframework/Global.java).  The example assumes you have the [errplane jar](https://github.com/errplane/errplane-java/tree/master/dist)
+in your classpath.
+
+    import com.errplane.api.Errplane;
+    import com.errplane.examples.standalone.ErrplaneFlusher;
+
+    import play.Application;
+    import play.GlobalSettings;
+
+    public class Global extends GlobalSettings {
+
+        private ErrplaneFlusher flusher;
+
+        @Override
+        public void onStart(Application app) {
+
+            // try to initialize Errplane
+            if (!initErrplane()) {
+                System.out.println("Errplane initialization failed!");
+                System.out.println("Make sure you have set the environment variables: EP_APP, EP_API, and EP_ENV!");
+                return;
+            }
+
+            // fire up the flusher
+            flusher = new ErrplaneFlusher();
+            flusher.startFlusher();
+
+            // fire up the heartbeat at the default 30 second interval
+            flusher.heartbeat("errplane-java/playApplicationHB");
+            
+            // let it be known that we started up
+            Errplane.report("errplane-java/playApplicationStartup");
+        }
+
+        @Override
+        public void onStop(Application app) {
+            // let it be known that we're going down
+            Errplane.report("errplane-java/playApplicationShutdown");
+
+            // clear Errplane reports
+            flusher.stopFlusher();
+        }
+
+        private static boolean initErrplane() {
+
+            String appKey = System.getenv("EP_APP");
+            String apiKey = System.getenv("EP_API");
+            String env = System.getenv("EP_ENV");
+            return Errplane.init(appKey, apiKey, env);
+        }
+    }
 
 Basic Usage Scenario
 --------------------
