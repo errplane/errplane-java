@@ -280,10 +280,7 @@ Customizing How Exceptions Get Grouped
 --------------------------------------
 Under Development
 
-Full Examples
--------------
+Tests
+-----
 Test code can be found at:
 [Errplane Tests](https://github.com/errplane/errplane-java/blob/master/src/test/java/com/errplane/api/ErrplaneTest.java)
-
-Sample code can be found at:
-[Errplane Samples](https://github.com/errplane/errplane-java/tree/master/samples/com/errplane/examples)
