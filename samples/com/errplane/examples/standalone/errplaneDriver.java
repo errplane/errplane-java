@@ -1,8 +1,5 @@
 package com.errplane.examples.standalone;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 import com.errplane.api.Errplane;
 import com.errplane.api.TimerTask;
 
@@ -23,6 +20,9 @@ public class errplaneDriver {
 		// fire up the flusher
 		ErrplaneFlusher flusher = new ErrplaneFlusher();
 		flusher.startFlusher();
+		
+		// fire up the heartbeat at the default 30 second interval
+		flusher.heartbeat("errplane-java/sampleDriverHB");
 		
 		// do your application thing and report to Errplane
 		TimerTask timer = Errplane.startTimer("sampleDriverTimerTest");
