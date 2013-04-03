@@ -9,11 +9,6 @@ The library contains no 3rd party dependencies so you should be able to add it t
 
     import com.errplane.api.Errplane;
 
-Example Code
-------------
-The example code can be found in [Example Code](https://github.com/errplane/errplane-java/tree/master/samples/com/errplane/examples).  The example code is not built into the library since it contains environment specific code.
-It is intended to be used as a reference and directly used in your project if one of the available samples fits your usage scenario and environment.
-
 Initializing the library
 ------------------------
 The library is initialized with the following arguments:
@@ -31,6 +26,59 @@ success is true if none of the values passed in were null and a URL was successf
 Additionally, to set a session user (for single-user applications) to better trace exceptions reported to Errplane the following can be used:
 
     Errplane.setSessionUser("string that identifies the current user");
+
+Example Code
+------------
+The example code can be found in [Example Code](https://github.com/errplane/errplane-java/tree/master/samples).  The example code is not built into the library since it contains environment specific code.
+It is intended to be used as a reference (or directly in your project if one of the available samples fits your usage scenario and environment).
+
+Standalone Initialization Example
+---------------------------------
+This example shows how to initialize Errplane and startup the [ErrplaneFlusher](https://github.com/errplane/errplane-java/blob/master/samples/standalone/ErrplaneFlusher.java) to send reports automatically
+to Errplane.  It is important to remember that none of the samples (e.g. ErrplaneFlusher) are included in the Errplane jar.  To use the flusher simply copy-paste from the linked code.  Also, this example
+initialization code can be found in [errplaneDriver](https://github.com/errplane/errplane-java/blob/master/samples/standalone/errplaneDriver.java).
+
+    import com.errplane.api.Errplane;
+    import com.errplane.examples.standalone.ErrplaneFlusher;
+    
+    public errplaneDriver {
+    
+        public static void main(String[] args) {
+
+            // try to initialize Errplane
+            if (!initErrplane()) {
+                System.out.println("Errplane initialization failed!");
+                System.out.println("Make sure you have set the environment variables: EP_APP, EP_API, and EP_ENV!");
+                return;
+            }
+
+            // fire up the flusher
+            ErrplaneFlusher flusher = new ErrplaneFlusher();
+            flusher.startFlusher();
+
+            // fire up the heartbeat at the default 30 second interval
+            flusher.heartbeat("errplane-java/sampleDriverHB");
+
+            // code to run your application and send Errplane reports and exceptions goes here
+            // ...
+            // ...
+            // ...
+
+
+            // when your application is exiting stop the flusher to send all leftover reports to Errplane
+            flusher.stopFlusher();
+
+        }
+    
+        private static boolean initErrplane() {
+
+            // you can read these out of a properties file if you prefer (or even hardcode them)
+            String appKey = System.getenv("EP_APP");
+            String apiKey = System.getenv("EP_API");
+            String env = System.getenv("EP_ENV");
+            return Errplane.init(appKey, apiKey, env);
+        }
+    }
 
 Basic Usage Scenario
 --------------------
