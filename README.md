@@ -257,7 +257,7 @@ Breadcrumbs are useful in a single-user application for providing checkpoints fo
 
 Timed Execution Reporting
 -------------------------
-Timed execution reporting allows you to report the time taken to complete a section of code.  As when reporting events to Errplane, the name passed in to the `Errplane.startTimeer(String)` method must be < 250 characters.
+Timed execution reporting allows you to report the time taken to complete a section of code.  As when reporting events to Errplane, the name passed in to the `Errplane.startTimer(String)` method must be < 250 characters.
 To time execution use the following:
 
     import com.errplane.api.Errplane;
