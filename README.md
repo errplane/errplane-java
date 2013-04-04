@@ -140,7 +140,7 @@ in your classpath.
 Basic Usage Scenario
 --------------------
 The first thing you must do when using Errplane is initialize the library.  Reports will get stored prior to initialization, but nothing gets sent until its initialized.  After that you would begin reporting.  After sending
-a number of `report(...)` commands it is good to flush the queued reports to the Errplane server (or flush it on a loop as is done in the [standalone example](https://github.com/errplane/errplane-java/tree/master/samples/com/errplane/examples/standalone)).
+a number of `report(...)` commands it is good to flush the queued reports to the Errplane server (or flush it on a loop as is done in the [standalone example](https://github.com/errplane/errplane-java/blob/master/README.md#standalone-initialization-example) and the [Play Framework example](https://github.com/errplane/errplane-java/blob/master/README.md#play-framework-20-initialization-example) ).
 Additionaly, you can report `Exception`s when they occur.
 With that in mind here is a basic scenario:
 
