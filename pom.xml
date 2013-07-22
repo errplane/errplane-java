@@ -2,11 +2,11 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>errplane-java</groupId>
+  <groupId>com.errplane</groupId>
   <artifactId>errplane</artifactId>
   <packaging>jar</packaging>
 
-  <name>errplane-java</name>
+  <name>errplane</name>
   <url>http://maven.apache.org</url>
 
   <properties>
