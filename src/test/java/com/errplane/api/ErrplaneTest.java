@@ -16,7 +16,7 @@ public class ErrplaneTest {
 		String apiKey = System.getenv("EP_API");
 		String env = System.getenv("EP_ENV");
 		assertTrue("Environemnt variables not set: EP_APP, EP_API, EP_ENV!",
-				Errplane.init(appKey, apiKey, env));
+               Errplane.init(appKey, apiKey, env));
 	}
 
 	@After
@@ -63,22 +63,22 @@ public class ErrplaneTest {
 	@Test
 	public void reportString() {
 		assertTrue("Report with name failed!", Errplane.report("unittest_errplane-java/testReport"));
-		
+
 		Errplane.flush();
-		
+
 		// now try batch sends and using specified time, not 'now'
 		for (int i = 0; i < 10; i++) {
 			assertTrue("Report batch sends failed",
-					Errplane.report(("unittest_errplane-java/testReportBatch"+i)));
+                 Errplane.report(("unittest_errplane-java/testReportBatch"+i)));
 		}
-		
+
 		try {
 			Thread.sleep(30001);
 		}
 		catch (Exception e){}
-		
+
 		Errplane.flush();
-		
+
 		// create a name around the 250 character limit and test for success/failure
 		String baseName = "unittest_errplane-java/testReport/nameLimits";
 		for (int i = baseName.length(); i < 246; i++) {
@@ -86,49 +86,49 @@ public class ErrplaneTest {
 		}
 		String name = baseName + "249";
 		assertTrue("Report failed with name length " + name.length() + " characters.", Errplane.report(name));
-		
+
 		name = baseName + "E250";
-		
-		assertFalse("Report succeeded with name length " + name.length() + 
-				" characters!", Errplane.report(name));
-		
+
+		assertFalse("Report succeeded with name length " + name.length() +
+                " characters!", Errplane.report(name));
+
 		name = baseName + "EE251";
-		
-		assertFalse("Report succeeded with name length " + name.length() + 
-				" characters!", Errplane.report(name));
-		
+
+		assertFalse("Report succeeded with name length " + name.length() +
+                " characters!", Errplane.report(name));
+
 		assertFalse("Report succeeded with null name!", Errplane.report(null));
-		
+
 	}
 
 	@Test
 	public void reportStringInt() {
 		assertTrue("Report with name and int failed!",
-				Errplane.report("unittest_errplane-java/testReportInt", 12345));
+               Errplane.report("unittest_errplane-java/testReportInt", 12345));
 	}
 
 	@Test
 	public void reportStringDouble() {
 		assertTrue("Report with name and double failed!",
-				Errplane.report("unittest_errplane-java/testReportDouble", 123.45));
+               Errplane.report("unittest_errplane-java/testReportDouble", 123.45));
 	}
 
 	@Test
 	public void reportStringString() {
 		assertTrue("Report with name and context failed!",
-				Errplane.report("unittest_errplane-java/testReportContext", "login"));
+               Errplane.report("unittest_errplane-java/testReportContext", "login"));
 	}
 
 	@Test
 	public void reportStringIntString() {
 		assertTrue("Report with name, int, and context failed!",
-				Errplane.report("unittest_errplane-java/testReportIntContext", 2557325, "volume"));
+               Errplane.report("unittest_errplane-java/testReportIntContext", 2557325, "volume"));
 	}
 
 	@Test
 	public void reportStringDoubleString() {
 		assertTrue("Report with name, double, and context failed!",
-				Errplane.report("unittest_errplane-java/testReportDoubleContext", 1174.3, "mssgs/s"));
+               Errplane.report("unittest_errplane-java/testReportDoubleContext", 1174.3, "mssgs/s"));
 	}
 
 	@Test
@@ -138,10 +138,10 @@ public class ErrplaneTest {
 		}
 		catch (NullPointerException e) {
 			assertTrue("Report Exception failed!",
-					Errplane.reportException(e, Errplane.getExceptionData
-					("unittest_errplane-java", "testException", "junit")));
+                 Errplane.reportException(e, Errplane.getExceptionData
+                                          ("unittest_errplane-java", "testException", "junit")));
 		}
-		
+
 		Errplane.breadcrumb("now");
 		Errplane.breadcrumb("some");
 		Errplane.breadcrumb("breadcrumbs");
@@ -151,10 +151,10 @@ public class ErrplaneTest {
 		}
 		catch (ClassCastException e) {
 			assertTrue("Report Exception failed!",
-					Errplane.reportException(e, Errplane.getExceptionData
-					("unittest_errplane-java", "testException", "junit")));
+                 Errplane.reportException(e, Errplane.getExceptionData
+                                          ("unittest_errplane-java", "testException", "junit")));
 		}
-		
+
 	}
 
 	@Test
@@ -164,11 +164,11 @@ public class ErrplaneTest {
 		}
 		catch (NullPointerException e) {
 			assertTrue("Report Exception failed!",
-					Errplane.reportException(e, "{\"user\":\"junit\"}", Errplane.getExceptionData
-					("unittest_errplane-java", "testExceptionCustomData", "junit")));
+                 Errplane.reportException(e, "{\"user\":\"junit\"}", Errplane.getExceptionData
+                                          ("unittest_errplane-java", "testExceptionCustomData", "junit")));
 			assertTrue("Report Exception failed!",
-					Errplane.reportException(e, "just some custom data", Errplane.getExceptionData
-					("unittest_errplane-java", "testExceptionCustomData", "junit")));
+                 Errplane.reportException(e, "just some custom data", Errplane.getExceptionData
+                                          ("unittest_errplane-java", "testExceptionCustomData", "junit")));
 		}
 	}
 
@@ -179,8 +179,8 @@ public class ErrplaneTest {
 		}
 		catch (NullPointerException e) {
 			assertTrue("Report Exception failed!",
-					Errplane.reportExceptionWithHash(e, "NPEHash", Errplane.getExceptionData
-					("unittest_errplane-java", "testExceptionWithHash", "junit")));
+                 Errplane.reportExceptionWithHash(e, "NPEHash", Errplane.getExceptionData
+                                                  ("unittest_errplane-java", "testExceptionWithHash", "junit")));
 		}
 	}
 
@@ -191,8 +191,8 @@ public class ErrplaneTest {
 		}
 		catch (NullPointerException e) {
 			assertTrue("Report Exception failed!",
-					Errplane.reportException(e, "group this hash", "{\"user\":\"junit\"}", Errplane.getExceptionData
-					("unittest_errplane-java", "testExceptionHashAndCustomData", "junit")));
+                 Errplane.reportException(e, "group this hash", "{\"user\":\"junit\"}", Errplane.getExceptionData
+                                          ("unittest_errplane-java", "testExceptionHashAndCustomData", "junit")));
 		}
 	}
 
@@ -200,7 +200,7 @@ public class ErrplaneTest {
 	public void startTimer() {
 		TimerTask tt = Errplane.startTimer(null);
 		assertNull("", tt);
-		
+
 		// create a name around the 250 character limit and test for success/failure
 		String baseName = "unittest_errplane-java/testStartTimer/nameLimits";
 		for (int i = baseName.length(); i < 246; i++) {
@@ -209,17 +209,17 @@ public class ErrplaneTest {
 		String name = baseName + "249";
 		tt = Errplane.startTimer(name);
 		assertNotNull("startTimer failed with name length " + name.length() + " characters.", tt);
-		
+
 		name = baseName + "E250";
-		
+
 		tt = Errplane.startTimer(name);
 		assertNull("startTimer succeeded with name length " + name.length() + " characters.", tt);
-		
+
 		name = baseName + "EE251";
-		
+
 		tt = Errplane.startTimer(name);
 		assertNull("startTimer succeeded with name length " + name.length() + " characters.", tt);
-		
+
 		tt = Errplane.startTimer("unittest_errplane-java/timerTest");
 		assertNotNull("TimerTask is null!", tt);
 		try {
