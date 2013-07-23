@@ -419,7 +419,6 @@ public class Errplane {
     payload.put("w", metrics);
 
     byte[] payloadString = Json.marshalToJson(payload).getBytes();
-    System.out.printf("payload: %s\n", Json.marshalToJson(payload));
     try {
       DatagramPacket packet = new DatagramPacket(payloadString, payloadString.length);
       udpSocket.send(packet);
