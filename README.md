@@ -210,6 +210,44 @@ The following are simple examples for each method:
     Errplane.report("average_response_time", 192.75, "Average Response Time");
 
 
+Sum
+---
+Keep a cumulative sum of the values per minute (negative values will decrement the counter).
+
+    import com.errplane.api.Errplane;
+
+    // incrementing providing your own useful double value
+    Errplane.sum("avg_usage_pcnt", 99.9);
+
+    // incrementing providing your own useful context (uses default value of 1)
+    Errplane.sum("problem_with_server", "Delayed Server Request");
+
+    // incrementing providing your own useful context and value
+    Errplane.sum("average_response_time", 192.75, "Average Response Time");
+
+    // incrementing providing your own useful context and value
+    Errplane.sum("average_response_time", 192.75, "Average Response Time");
+
+
+Aggregate
+---------
+Aggregate values per minute, this will calculate the mean, sum and count of all data points.
+
+    import com.errplane.api.Errplane;
+
+    // aggregating providing your own useful double value
+    Errplane.aggregate("avg_usage_pcnt", 99.9);
+
+    // aggregating providing your own useful context (uses default value of 1)
+    Errplane.aggregate("problem_with_server", "Delayed Server Request");
+
+    // aggregating providing your own useful context and value
+    Errplane.aggregate("average_response_time", 192.75, "Average Response Time");
+
+    // aggregating providing your own useful context and value
+    Errplane.aggregate("average_response_time", 192.75, "Average Response Time");
+
+
 Exception Reporting
 -------------------
 There are four basic methods for reporting exceptions. Again, use the ones that make the most sense for your application.

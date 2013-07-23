@@ -105,6 +105,18 @@ public class ErrplaneTest {
 	}
 
 	@Test
+	public void aggregate() {
+	  assertTrue("Aggregate failed!",
+               Errplane.aggregate("unittest_errplane-java/testAggregate", 100.0));
+	}
+
+	@Test
+	public void sum() {
+	  assertTrue("Sum failed!",
+               Errplane.sum("unittest_errplane-java/testSum", 100.0));
+	}
+
+	@Test
 	public void reportStringInt() {
 		assertTrue("Report with name and int failed!",
                Errplane.report("unittest_errplane-java/testReportInt", 12345));

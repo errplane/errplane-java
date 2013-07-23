@@ -1,16 +1,25 @@
 package com.errplane.api;
 
+import java.io.IOException;
 import java.io.OutputStream;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
+import java.net.SocketException;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.errplane.http.HTTPPostHelper;
 import com.errplane.util.ExceptionHelper;
+import com.errplane.util.Json;
 import com.errplane.util.ReportHelper;
 
 /**
@@ -40,6 +49,10 @@ public class Errplane {
 
 	private static String urlStr = "https://w.apiv3.errplane.com/databases/";
 
+	private static String udpHost = "udp.apiv3.errplane.com";
+
+	private static DatagramSocket udpSocket;
+
 	private static String app;
 
 	private static String api;
@@ -47,6 +60,12 @@ public class Errplane {
 	private static String environment;
 
   private static String hostname;
+
+  private static int udpPort = 8126;
+
+  private static String database;
+
+  private static InetSocketAddress address;
 
 	/**
 	 * This method initializes Errplane so it is ready to send data.
@@ -70,7 +89,7 @@ public class Errplane {
 		api = apiKey;
 		environment = env;
 
-		return initUrl();
+		return initUrl() && initUdpConnection();
 	}
 
 	public static boolean setUrl(String url) {
@@ -78,9 +97,39 @@ public class Errplane {
 		return initUrl();
 	}
 
-	private static boolean initUrl() {
+	/**
+	 *
+	 * @param host
+	 * @return
+	 */
+	public static boolean setUdpHostAndPort(String host, int port) {
+	  udpHost = host;
+	  udpPort = port;
+    return initUdpConnection();
+	}
+
+	private static boolean initUdpConnection() {
+    try {
+      if (udpSocket != null) {
+        udpSocket.close();
+        udpSocket = null;
+      }
+
+      address = new InetSocketAddress(udpHost, udpPort);
+      udpSocket = new DatagramSocket();
+      udpSocket.connect(address);
+
+    } catch (SocketException e) {
+      e.printStackTrace();
+      return false;
+    }
+    return true;
+  }
+
+  private static boolean initUrl() {
 		try {
-			errplaneUrl = new URL((urlStr+app+environment+"/points?api_key="+api));
+		  database = app+environment;
+			errplaneUrl = new URL((urlStr+database+"/points?api_key="+api));
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
 			return false;
@@ -134,13 +183,11 @@ public class Errplane {
 		if (!reportQueue.isEmpty() && (errplaneUrl != null)) {
 			int bytesWritten = 0;
 			HTTPPostHelper postHelper = new HTTPPostHelper();
-			// System.out.printf("url: %s\n", errplaneUrl);
 			try {
 				while (!reportQueue.isEmpty() && (numRemoved < 200)) {
 					ReportHelper rh = reportQueue.remove();
 					numRemoved++;
 					String rptBody = rh.getReportBody();
-					// System.out.printf("writing: %s\n", rptBody);
 					bytesWritten += rptBody.length() + 1;
 					OutputStream os = postHelper.getOutputStream(errplaneUrl, bytesWritten);
 					os.write(rptBody.getBytes());
@@ -270,6 +317,118 @@ public class Errplane {
 
 		return true;
 	}
+
+
+	/**
+	 * see {@link #aggregate(String, double, String, Map)}
+	 *
+	 * @param name
+	 * @param value
+	 * @return
+	 */
+	public static boolean aggregate(String name, double value) {
+	  return aggregate(name, value, null, null);
+	}
+
+	/**
+	 * see {@link #aggregate(String, double, String, Map)}
+	 *
+	 * @param name
+	 * @param value
+	 * @param context
+	 * @return
+	 */
+	public static boolean aggregate(String name, double value, String context) {
+	  return aggregate(name, value, context, null);
+	}
+
+	/**
+	 * Similar to report, but aggregate the values (mean, count, etc.)
+	 *
+	 * @param name
+	 * @param value
+	 * @param context
+	 * @param dimensions
+	 * @return
+	 */
+	public static boolean aggregate(String name, double value, String context, Map<String, String> dimensions) {
+	  return sendUdpCommon("t", name, value, context, dimensions);
+	}
+
+
+	/**
+	 * see {@link #sum(String, double, String, Map)}
+	 *
+	 * @param name
+	 * @param value
+	 * @return
+	 */
+	public static boolean sum(String name, double value) {
+	  return sum(name, value, null, null);
+	}
+
+	/**
+	 * see {@link #sum(String, double, String, Map)}
+	 *
+	 * @param name
+	 * @param value
+	 * @param context
+	 * @return
+	 */
+	public static boolean sum(String name, double value, String context) {
+	  return sum(name, value, context, null);
+	}
+
+	/**
+	 * Similar to report, but increment a counter
+	 *
+	 * @param name
+	 * @param value
+	 * @param context
+	 * @param dimensions
+	 * @return
+	 */
+	public static boolean sum(String name, double value, String context, Map<String, String> dimensions) {
+	  return sendUdpCommon("c", name, value, context, dimensions);
+	}
+
+	private static boolean sendUdpCommon(String type, String name, double value, String context, Map<String, String> dimensions) {
+	  // example
+	  // {"a":"962cdc9b-15e7-4b25-9a0d-24a45cfc6bc1","d":"app4you2lovestaging","o":"t","w":[{"n":"some_aggregate","p":[{"c":"","d":null,"v":30.091186058528706}]}]}
+
+	  List<Map<String, Object>> metrics = new ArrayList<Map<String, Object>>();
+	  Map<String, Object> metric = new HashMap<String, Object>();
+	  metric.put("n", name);
+
+	  List<Map<String, Object>> points = new ArrayList<Map<String, Object>>();
+	  Map<String, Object> point = new HashMap<String, Object>();
+	  point.put("v", value);
+	  if (context != null)
+	    point.put("c", context);
+	  if (dimensions != null)
+	    point.put("d", dimensions);
+
+	  points.add(point);
+	  metric.put("p", points);
+    metrics.add(metric);
+
+    Map<String, Object> payload = new HashMap<String, Object>();
+    payload.put("o", type);
+    payload.put("d", database);
+    payload.put("a", api);
+    payload.put("w", metrics);
+
+    byte[] payloadString = Json.marshalToJson(payload).getBytes();
+    System.out.printf("payload: %s\n", Json.marshalToJson(payload));
+    try {
+      DatagramPacket packet = new DatagramPacket(payloadString, payloadString.length);
+      udpSocket.send(packet);
+    } catch (IOException e) {
+      e.printStackTrace();
+      return false;
+    }
+    return true;
+  }
 
 	/**
      Posts an exception using either the default hash method or the overridden one (if provided).
