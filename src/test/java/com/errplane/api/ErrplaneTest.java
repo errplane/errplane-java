@@ -1,12 +1,15 @@
 package com.errplane.api;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.junit.Assert.*;
 
 public class ErrplaneTest {
 
@@ -72,10 +75,10 @@ public class ErrplaneTest {
                  Errplane.report(("unittest_errplane-java/testReportBatch"+i)));
 		}
 
-		try {
-			Thread.sleep(30001);
-		}
-		catch (Exception e){}
+//		try {
+//			Thread.sleep(30001);
+//		}
+//		catch (Exception e){}
 
 		Errplane.flush();
 
@@ -173,25 +176,13 @@ public class ErrplaneTest {
 	}
 
 	@Test
-	public void reportExceptionWithHash() {
-		try {
-			throw new NullPointerException("TestNPE Hash");
-		}
-		catch (NullPointerException e) {
-			assertTrue("Report Exception failed!",
-                 Errplane.reportExceptionWithHash(e, "NPEHash", Errplane.getExceptionData
-                                                  ("unittest_errplane-java", "testExceptionWithHash", "junit")));
-		}
-	}
-
-	@Test
 	public void reportExceptionExceptionStringString() {
 		try {
 			throw new NullPointerException("TestNPE with Hash and custom data");
 		}
 		catch (NullPointerException e) {
 			assertTrue("Report Exception failed!",
-                 Errplane.reportException(e, "group this hash", "{\"user\":\"junit\"}", Errplane.getExceptionData
+                 Errplane.reportException(e, "{\"user\":\"junit\"}", Errplane.getExceptionData
                                           ("unittest_errplane-java", "testExceptionHashAndCustomData", "junit")));
 		}
 	}

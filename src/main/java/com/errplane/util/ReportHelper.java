@@ -1,37 +1,34 @@
 package com.errplane.util;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class ReportHelper {
-	private String name;
-	
-	private long time;
-	
-	private Integer reportInt;
-	
-	private Double reportDouble;
-	
+	private final String name;
+
+	private final Date time;
+
+	private double value;
+
 	private String context;
-	
+
+  private Map<String, String> dimensions;
+
 	public ReportHelper(String name) {
-		time = (new Date()).getTime();
+		time = new Date();
 		this.name = name;
 	}
 
-	public Integer getReportInt() {
-		return reportInt;
+
+	public double getReportValue() {
+		return value;
 	}
 
-	public void setReportInt(Integer reportInt) {
-		this.reportInt = reportInt;
-	}
-
-	public Double getReportDouble() {
-		return reportDouble;
-	}
-
-	public void setReportDouble(Double reportDouble) {
-		this.reportDouble = reportDouble;
+	public void setReportValue(double value) {
+		this.value = value;
 	}
 
 	public String getContext() {
@@ -41,30 +38,32 @@ public class ReportHelper {
 	public void setContext(String context) {
 		this.context = context;
 	}
-	
+
+	// [{"n":"exceptions","p":[{"c":"some_context","d":{"foo":"bar"},"t":%d,"v":123.4}]}]
 	public String getReportBody() {
-		String rptBody = name + " ";
-		if (reportInt != null) {
-			rptBody += reportInt.toString() + " ";
-		}
-		else {
-			rptBody += reportDouble.toString() + " ";
-		}
-		
-		Date now = new Date();
-		
-		// if its been at least 30 seconds since creating this report, send the
-		//   original time, otherwise send 'now'
-		if ((now.getTime()-time) > 30000) {
-			rptBody += (long)(time/1000);
-		}
-		else {
-			rptBody += "now";
-		}
-		
-		if (context != null) {
-			rptBody += " " + Base64.encode(context);
-		}
-		return rptBody;
+	  Map<String, Object> body = new HashMap<String, Object>();
+	  body.put("n", name);
+	  List<Map<String, Object>> points = new ArrayList<Map<String, Object>>();
+	  Map<String, Object> point = new HashMap<String, Object>();
+	  points.add(point);
+	  if (context != null) {
+	    point.put("c", context);
+	  }
+	  if (dimensions != null) {
+	    point.put("d", dimensions);
+	  }
+	  point.put("t", time.getTime() / 1000);
+	  point.put("v", value);
+	  body.put("p", points);
+	  return "[" + Json.marshalToJson(body) + "]";
 	}
+
+
+  public void setDimensions(Map<String, String> dimensions) {
+    this.dimensions = dimensions;
+  }
+
+  public Map<String, String> getDimensions() {
+    return dimensions;
+  }
 }

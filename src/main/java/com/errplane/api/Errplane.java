@@ -1,20 +1,17 @@
 package com.errplane.api;
 
-import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
+import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.net.UnknownHostException;
+import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.errplane.util.*;
-import com.errplane.http.*;
+import com.errplane.http.HTTPPostHelper;
+import com.errplane.util.ExceptionHelper;
+import com.errplane.util.ReportHelper;
 
 /**
  * This class is the entrypoint for the Errplane library.  Use it to report
@@ -25,11 +22,9 @@ import com.errplane.http.*;
  */
 public class Errplane {
 
-	private static ExceptionHashInterface hashFunc = new DefaultExceptionHash();
+	private static final String EXCEPTIONS_TIMESERIES = "exceptions";
 
 	private static AtomicInteger reportCount = new AtomicInteger(0);
-
-	private static AtomicInteger breadcrumbCount = new AtomicInteger(0);
 
 	private static AtomicInteger reportCapacity = new AtomicInteger(10000);
 
@@ -43,7 +38,7 @@ public class Errplane {
 
 	private static URL errplaneUrl;
 
-	private static String urlStr = "https://apiv2.errplane.com/databases/";
+	private static String urlStr = "https://w.apiv3.errplane.com/databases/";
 
 	private static String app;
 
@@ -51,7 +46,7 @@ public class Errplane {
 
 	private static String environment;
 
-	private static String sessionUser;
+  private static String hostname;
 
 	/**
 	 * This method initializes Errplane so it is ready to send data.
@@ -66,6 +61,11 @@ public class Errplane {
 			return false;
 		}
 
+		try {
+		  hostname = InetAddress.getLocalHost().getHostName();
+		} catch (UnknownHostException e) {
+		  return false;
+		}
 		app = appKey;
 		api = apiKey;
 		environment = env;
@@ -101,22 +101,11 @@ public class Errplane {
 	}
 
 	/**
-     Overrides the default exception hashing behavior.
-
-     @param hashFuncOverride a sub-class of EPDefaultExceptionHash that provides an overridden
-     hash function.
-  */
-	public static void exceptionHashOverride(DefaultExceptionHash hashFuncOverride) {
-		hashFunc = hashFuncOverride;
-	}
-
-	/**
      The user associated with the current Errplane session.
 
      @param sessUser the session user to be sent with exception details.
   */
 	public static synchronized void setSessionUser(String sessUser) {
-		sessionUser = sessUser;
 	}
 
 	/**
@@ -136,25 +125,6 @@ public class Errplane {
     return new String(hexChars);
 	}
 
-	private static String getSha(String toSha) {
-		String shaStr = null;
-
-    MessageDigest md = null;
-    try {
-      md = MessageDigest.getInstance("SHA-1");
-    }
-    catch(NoSuchAlgorithmException e) {
-      e.printStackTrace();
-    }
-    try {
-			shaStr = getHex(md.digest(toSha.getBytes("UTF-8")));
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
-		}
-
-		return shaStr;
-	}
-
 	/**
      Try to clear any outstanding Errplane reports.  Returns the number of
      reports sent.
@@ -164,16 +134,20 @@ public class Errplane {
 		if (!reportQueue.isEmpty() && (errplaneUrl != null)) {
 			int bytesWritten = 0;
 			HTTPPostHelper postHelper = new HTTPPostHelper();
-			OutputStream os = postHelper.getOutputStream(errplaneUrl);
+			// System.out.printf("url: %s\n", errplaneUrl);
 			try {
 				while (!reportQueue.isEmpty() && (numRemoved < 200)) {
 					ReportHelper rh = reportQueue.remove();
 					numRemoved++;
 					String rptBody = rh.getReportBody();
-					bytesWritten += rptBody.length();
+					// System.out.printf("writing: %s\n", rptBody);
+					bytesWritten += rptBody.length() + 1;
+					OutputStream os = postHelper.getOutputStream(errplaneUrl, bytesWritten);
 					os.write(rptBody.getBytes());
-					os.write(10);
-					bytesWritten++;
+					os.write('\n');
+  				if (!postHelper.sendPost(bytesWritten)) {
+  				  System.out.println("Cannot send tick to server");
+  				}
 				}
 			}
 			catch (Exception e) {
@@ -181,8 +155,7 @@ public class Errplane {
 			}
 
 			if (numRemoved > 0) {
-				reportCount.addAndGet((numRemoved*-1));
-				postHelper.sendPost(bytesWritten);
+				reportCount.addAndGet(-numRemoved);
 			}
 		}
 		return numRemoved;
@@ -211,13 +184,11 @@ public class Errplane {
 		return new ExceptionData(c, a, u);
 	}
 
-	private static void addReportHelper
-    (String name, Integer iVal, Double dVal, String context) {
-
+	private static void addReportHelper(String name, double val, String context, Map<String, String> dimensions) {
 		ReportHelper rh = new ReportHelper(name);
-		rh.setReportInt(iVal);
-		rh.setReportDouble(dVal);
+		rh.setReportValue(val);
 		rh.setContext(context);
+		rh.setDimensions(dimensions);
 		reportQueue.add(rh);
 		reportCount.addAndGet(1);
 	}
@@ -228,14 +199,7 @@ public class Errplane {
      @return false if Errplane was not previously initialized or the name exceeds 249 characters.
   */
 	public static boolean report(String name) {
-
-		if ((name == null) || (name.length() >= 250)) {
-			return false;
-		}
-
-		addReportHelper(name,1,null,null);
-
-		return true;
+	  return report(name, 1.0, null, null);
 	}
 
 	/**
@@ -245,14 +209,7 @@ public class Errplane {
      @return false if Errplane was not previously initialized or the name exceeds 249 characters.
   */
 	public static boolean report(String name, int value) {
-
-		if ((name == null) || (name.length() >= 250)) {
-			return false;
-		}
-
-		addReportHelper(name,value,null,null);
-
-		return true;
+	  return report(name, value, null, null);
 	}
 
 	/**
@@ -262,14 +219,7 @@ public class Errplane {
      @return false if Errplane was not previously initialized or the name exceeds 249 characters.
   */
 	public static boolean report(String name, double value) {
-
-		if ((name == null) || (name.length() >= 250)) {
-			return false;
-		}
-
-		addReportHelper(name,null,value,null);
-
-		return true;
+	  return report(name, value, null, null);
 	}
 
 	/**
@@ -279,14 +229,7 @@ public class Errplane {
      @return false if Errplane was not previously initialized or the name exceeds 249 characters.
   */
 	public static boolean report(String name, String context) {
-
-		if ((name == null) || (name.length() >= 250) || (context == null)) {
-			return false;
-		}
-
-		addReportHelper(name,1,null,context);
-
-		return true;
+	  return report(name, 1, context, null);
 	}
 
 	/**
@@ -297,14 +240,7 @@ public class Errplane {
      @return false if Errplane was not previously initialized or the name exceeds 249 characters.
   */
 	public static boolean report(String name, int value, String context) {
-
-		if ((name == null) || (name.length() >= 250) || (context == null)) {
-			return false;
-		}
-
-		addReportHelper(name,value,null,context);
-
-		return true;
+		return report(name,value,context, null);
 	}
 
 	/**
@@ -315,12 +251,18 @@ public class Errplane {
      @return false if Errplane was not previously initialized or the name exceeds 249 characters.
   */
 	public static boolean report(String name, double value, String context) {
+	  return report(name, value, context, null);
+	}
 
-		if ((name == null) || (name.length() >= 250) || (context == null)) {
+	/**
+     Posts a datapoint with a value, context and dimensions
+  */
+	public static boolean report(String name, double value, String context, Map<String, String> dimensions) {
+		if ((name == null) || (name.length() >= 250)) {
 			return false;
 		}
 
-		addReportHelper(name,null,value,context);
+		addReportHelper(name,value,context, dimensions);
 
 		return true;
 	}
@@ -332,34 +274,10 @@ public class Errplane {
      @return false if Errplane was not previously initialized.
   */
 	public static boolean reportException(Exception ex, ExceptionData exData) {
-		return reportException(ex, null, null, exData);
+		return reportException(ex, null, exData);
 	}
 
-	/**
-     Posts an exception using either the default hash method or the overridden one (if provided)
-     and the custom data supplied.
-     @param ex the exception to report.
-     @param customData the NSString to place in the custom_data section of the exception detail
-     reporting to Errplane.
-     @param exData the additional exception data to be sent with the report
-     @return false if Errplane was not previously initialized.
-  */
-	public static boolean reportException(Exception ex, String customData,
-                                        ExceptionData exData) {
-		return reportException(ex, null, customData, exData);
-	}
 
-	/**
-     Posts an exception using either the hash passed in to group the exception.
-     @param ex the exception to report.
-     @param hash the overridden hash to use rather than the default.
-     @param exData the additional exception data to be sent with the report
-     @return false if Errplane was not previously initialized or the name exceeds 249 characters.
-  */
-	public static boolean reportExceptionWithHash(Exception ex, String hash,
-                                                ExceptionData exData) {
-		return reportException(ex, hash, null, exData);
-	}
 
 	/**
      Posts an exception using either the default hash method or the overridden one (if provided).
@@ -370,27 +288,14 @@ public class Errplane {
      @param exData the additional exception data to be sent with the report
      @return false if Errplane was not previously initialized.
   */
-	public static boolean reportException(Exception ex, String hash,
-                                        String customData, ExceptionData exData) {
+	public static boolean reportException(Exception ex, String customData, ExceptionData exData) {
 		if (ex == null) {
 			return false;
 		}
 
-		String shaHash = null;
+		ExceptionHelper helper = new ExceptionHelper(ex, exData, breadcrumbQueue.toArray(), customData, hostname);
 
-		if (hash != null) {
-			shaHash = getSha(hash);
-		}
-		else {
-			shaHash = getSha(hashFunc.hash(ex));
-		}
-
-		String exceptionName = "exceptions/" + shaHash;
-
-		ExceptionHelper helper = new ExceptionHelper
-      (ex, exData, breadcrumbQueue.toArray(), customData);
-
-		return report(exceptionName, helper.createExceptionDetail());
+		return report(EXCEPTIONS_TIMESERIES, 1.0, helper.createExceptionContext(), helper.createExceptionDimensions());
 	}
 
 	/**
