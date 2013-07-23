@@ -41,9 +41,9 @@ The example assumes you have the [errplane jar](https://github.com/errplane/errp
 
     import com.errplane.api.Errplane;
     import com.errplane.examples.standalone.ErrplaneFlusher;
-    
+
     public errplaneDriver {
-    
+
         public static void main(String[] args) {
 
             // try to initialize Errplane
@@ -70,7 +70,7 @@ The example assumes you have the [errplane jar](https://github.com/errplane/errp
             flusher.stopFlusher();
 
         }
-    
+
         private static boolean initErrplane() {
 
             // you can read these out of a properties file if you prefer (or even hardcode them)
@@ -80,7 +80,7 @@ The example assumes you have the [errplane jar](https://github.com/errplane/errp
             return Errplane.init(appKey, apiKey, env);
         }
     }
-    
+
 Play Framework 2.0+ Initialization Example
 ------------------------------------------
 This example shows how to initialize Errplane and startup the [ErrplaneFlusher](https://github.com/errplane/errplane-java/blob/master/samples/standalone/ErrplaneFlusher.java) to flush reports automatically
@@ -114,7 +114,7 @@ in your classpath.
 
             // fire up the heartbeat at the default 30 second interval
             flusher.heartbeat("errplane-java/playApplicationHB");
-            
+
             // let it be known that we started up
             Errplane.report("errplane-java/playApplicationStartup");
         }
@@ -146,7 +146,7 @@ With that in mind here is a basic scenario:
 
     import com.errplane.api.Errplane;
     import com.errplane.api.TimerTask;
-    
+
     ...
 
     // init Errplane
@@ -170,7 +170,7 @@ With that in mind here is a basic scenario:
 
       // flush it
       int numReportsSent = Errplane.flush();
-      
+
       // force an exception
       String [] arr = {"one", "two", "threeButNotFour"};
       try {
@@ -194,22 +194,19 @@ The following are simple examples for each method:
 
     import com.errplane.api.Errplane;
 
-    // simple reporting (default int value of 1 is sent to Errplane)
+    // simple reporting (default value of 1 is sent to Errplane)
     Errplane.report("user logged in");
-    
-    // reporting providing your own useful int value
-    Errplane.report("minutes_since_last_login", 10);
-    
+
     // reporting providing your own useful double value
     Errplane.report("avg_usage_pcnt", 99.9);
-    
-    // reporting providing your own useful context (uses default int value of 1)
+
+    // reporting providing your own useful context (uses default value of 1)
     Errplane.report("problem_with_server", "Delayed Server Request");
-    
-    // reporting providing your own useful context and int value
-    Errplane.report("slow_processing", 2500, "Slow Processing");
-    
-    // reporting providing your own useful context and double value
+
+    // reporting providing your own useful context and value
+    Errplane.report("average_response_time", 192.75, "Average Response Time");
+
+    // reporting providing your own useful context and value
     Errplane.report("average_response_time", 192.75, "Average Response Time");
 
 
@@ -227,14 +224,6 @@ All of these examples assume `exception` is derived from `java.lang.Exception`.
     // with custom data
     Errplane.reportException(exception, "custom data for you to pass in can be json",
             Errplane.getExceptionData("MyJavaClass", "myJavaMethod", "standalone app"));
-
-    // hash override
-    Errplane.reportExceptionWithHash(exception, "hash this",
-            Errplane.getExceptionData("MyJavaClass", "myJavaMethod", "mobile device"));
-
-    // hash override with custom data
-    Errplane.reportException(exception, "hash this", "more custom data",
-            Errplane.getExceptionData("MyJavaClass", "myJavaMethod", "refrigerator"));
 
 Breadcrumbs
 -----------

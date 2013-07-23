@@ -207,8 +207,10 @@ public class Errplane {
      @param name the name[s] of the timeline[s] to post the data point to.
      @param value the int value to post to the timeline.
      @return false if Errplane was not previously initialized or the name exceeds 249 characters.
+     @deprecated use {@link #report(String,double)} instead
   */
-	public static boolean report(String name, int value) {
+	@Deprecated
+  public static boolean report(String name, int value) {
 	  return report(name, value, null, null);
 	}
 
@@ -238,8 +240,10 @@ public class Errplane {
      @param value the int value to post to the timeline[s].
      @param context the context to post along with the datapoint to the timeline.
      @return false if Errplane was not previously initialized or the name exceeds 249 characters.
+     @deprecated use {@link #report(String,double,String)} instead
   */
-	public static boolean report(String name, int value, String context) {
+	@Deprecated
+  public static boolean report(String name, int value, String context) {
 		return report(name,value,context, null);
 	}
 
