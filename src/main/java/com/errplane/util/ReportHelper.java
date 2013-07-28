@@ -8,13 +8,13 @@ public class ReportHelper {
 
   private final ReportType type;
 
-	private final String name;
+  private final String name;
 
-	private final Date time;
+  private final Date time;
 
-	private double value;
+  private double value;
 
-	private String context;
+  private String context;
 
   private Map<String, String> dimensions;
 
@@ -24,35 +24,35 @@ public class ReportHelper {
 
   private final String reportType;
 
-	public ReportHelper(String name, String reportType, ReportType type, String database, String apiKey) {
-	  this.reportType = reportType;
+  public ReportHelper(String name, String reportType, ReportType type, String database, String apiKey) {
+    this.reportType = reportType;
     this.database = database;
     this.apiKey = apiKey;
     time = new Date();
-	  this.type = type;
-	  this.name = name;
-	}
+    this.type = type;
+    this.name = name;
+  }
 
 
-	public double getReportValue() {
-		return value;
-	}
+  public double getReportValue() {
+    return value;
+  }
 
-	public ReportType getType() {
-	  return type;
-	}
+  public ReportType getType() {
+    return type;
+  }
 
-	public void setReportValue(double value) {
-		this.value = value;
-	}
+  public void setReportValue(double value) {
+    this.value = value;
+  }
 
-	public String getContext() {
-		return context;
-	}
+  public String getContext() {
+    return context;
+  }
 
-	public void setContext(String context) {
-		this.context = context;
-	}
+  public void setContext(String context) {
+    this.context = context;
+  }
 
   public void setDimensions(Map<String, String> dimensions) {
     this.dimensions = dimensions;
