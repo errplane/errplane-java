@@ -11,7 +11,6 @@ import java.net.SocketException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -19,7 +18,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import com.errplane.http.HTTPPostHelper;
 import com.errplane.util.ExceptionHelper;
-import com.errplane.util.Json;
+import com.errplane.util.MergedReports;
 import com.errplane.util.ReportHelper;
 
 /**
@@ -181,21 +180,49 @@ public class Errplane {
 	public static synchronized int flush() {
 		int numRemoved = 0;
 		if (!reportQueue.isEmpty() && (errplaneUrl != null)) {
-			int bytesWritten = 0;
-			HTTPPostHelper postHelper = new HTTPPostHelper();
 			try {
+        List<ReportHelper> httpReports = new ArrayList<ReportHelper>();
+        List<ReportHelper> udpReports = new ArrayList<ReportHelper>();
+        List<ReportHelper> udpAggregates = new ArrayList<ReportHelper>();
+        List<ReportHelper> udpSums = new ArrayList<ReportHelper>();
+
 				while (!reportQueue.isEmpty() && (numRemoved < 200)) {
 					ReportHelper rh = reportQueue.remove();
 					numRemoved++;
-					String rptBody = rh.getReportBody();
-					bytesWritten += rptBody.length() + 1;
-					OutputStream os = postHelper.getOutputStream(errplaneUrl, bytesWritten);
-					os.write(rptBody.getBytes());
-					os.write('\n');
-  				if (!postHelper.sendPost(bytesWritten)) {
-  				  System.out.println("Cannot send tick to server");
-  				}
+
+					System.out.printf("type: %s, report type: %s\n", rh.getType(), rh.getReportType());
+
+					switch (rh.getType()) {
+					case HTTP:
+					  httpReports.add(rh);
+					  break;
+					case UDP:
+					  if (rh.getReportType().equals("r"))
+					    udpReports.add(rh);
+					  else if (rh.getReportType().equals("t"))
+					    udpAggregates.add(rh);
+					  else if (rh.getReportType().equals("c"))
+					    udpSums.add(rh);
+					  else
+					    throw new IllegalArgumentException("Invalid report type " + rh.getReportType());
+					  break;
+				  default:
+				    throw new IllegalArgumentException("Unkown type " + rh.getType());
+					}
 				}
+
+        if (httpReports.size() > 0) {
+          sendHttpReport(httpReports);
+        }
+        if (udpReports.size() > 0) {
+          sendUdpReport(udpReports);
+        }
+        if (udpAggregates.size() > 0) {
+          sendUdpReport(udpAggregates);
+        }
+        if (udpSums.size() > 0) {
+          sendUdpReport(udpSums);
+        }
 			}
 			catch (Exception e) {
 				e.printStackTrace();
@@ -206,6 +233,33 @@ public class Errplane {
 			}
 		}
 		return numRemoved;
+	}
+
+  private static void sendHttpReport(List<ReportHelper> rhs) {
+    try {
+      int bytesWritten = 0;
+      HTTPPostHelper postHelper = new HTTPPostHelper();
+      String rptBody = new MergedReports(rhs).getReportBody();
+      bytesWritten += rptBody.length() + 1;
+      OutputStream os = postHelper.getOutputStream(errplaneUrl, bytesWritten);
+      os.write(rptBody.getBytes());
+      os.write('\n');
+      if (!postHelper.sendPost(bytesWritten)) {
+        System.out.println("Cannot send tick to server");
+      }
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+	}
+
+	private static void sendUdpReport(List<ReportHelper> rhs) {
+    byte[] payloadString = new MergedReports(rhs).getReportBody().getBytes();
+    try {
+      DatagramPacket packet = new DatagramPacket(payloadString,payloadString.length);
+      udpSocket.send(packet);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
 	}
 
 	/**
@@ -232,7 +286,7 @@ public class Errplane {
 	}
 
 	private static void addReportHelper(String name, double val, String context, Map<String, String> dimensions) {
-		ReportHelper rh = new ReportHelper(name);
+		ReportHelper rh = new ReportHelper(name, "", ReportHelper.ReportType.HTTP, database, api);
 		rh.setReportValue(val);
 		rh.setContext(context);
 		rh.setDimensions(dimensions);
@@ -392,40 +446,17 @@ public class Errplane {
 	  return sendUdpCommon("c", name, value, context, dimensions);
 	}
 
-	private static boolean sendUdpCommon(String type, String name, double value, String context, Map<String, String> dimensions) {
+	private static boolean sendUdpCommon(String reportType, String name, double value, String context, Map<String, String> dimensions) {
 	  // example
 	  // {"a":"962cdc9b-15e7-4b25-9a0d-24a45cfc6bc1","d":"app4you2lovestaging","o":"t","w":[{"n":"some_aggregate","p":[{"c":"","d":null,"v":30.091186058528706}]}]}
 
-	  List<Map<String, Object>> metrics = new ArrayList<Map<String, Object>>();
-	  Map<String, Object> metric = new HashMap<String, Object>();
-	  metric.put("n", name);
+		ReportHelper rh = new ReportHelper(name, reportType, ReportHelper.ReportType.UDP, database, api);
+		rh.setReportValue(value);
+		rh.setContext(context);
+		rh.setDimensions(dimensions);
+		reportQueue.add(rh);
+		reportCount.addAndGet(1);
 
-	  List<Map<String, Object>> points = new ArrayList<Map<String, Object>>();
-	  Map<String, Object> point = new HashMap<String, Object>();
-	  point.put("v", value);
-	  if (context != null)
-	    point.put("c", context);
-	  if (dimensions != null)
-	    point.put("d", dimensions);
-
-	  points.add(point);
-	  metric.put("p", points);
-    metrics.add(metric);
-
-    Map<String, Object> payload = new HashMap<String, Object>();
-    payload.put("o", type);
-    payload.put("d", database);
-    payload.put("a", api);
-    payload.put("w", metrics);
-
-    byte[] payloadString = Json.marshalToJson(payload).getBytes();
-    try {
-      DatagramPacket packet = new DatagramPacket(payloadString, payloadString.length);
-      udpSocket.send(packet);
-    } catch (IOException e) {
-      e.printStackTrace();
-      return false;
-    }
     return true;
   }
 
