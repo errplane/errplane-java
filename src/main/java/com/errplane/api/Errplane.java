@@ -190,7 +190,7 @@ public class Errplane {
           ReportHelper rh = reportQueue.remove();
           numRemoved++;
 
-          System.out.printf("type: %s, report type: %s\n", rh.getType(), rh.getReportType());
+          // System.out.printf("type: %s, report type: %s\n", rh.getType(), rh.getReportType());
 
           switch (rh.getType()) {
           case HTTP:
