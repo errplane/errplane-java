@@ -65,14 +65,14 @@ public class ErrplaneTest {
 
 	@Test
 	public void reportString() {
-		assertTrue("Report with name failed!", Errplane.report("unittest_errplane-java/testReport"));
+		assertTrue("Report with name failed!", Errplane.report("unittest_errplane_java_testReport"));
 
 		Errplane.flush();
 
 		// now try batch sends and using specified time, not 'now'
 		for (int i = 0; i < 10; i++) {
 			assertTrue("Report batch sends failed",
-                 Errplane.report(("unittest_errplane-java/testReportBatch"+i)));
+                 Errplane.report(("unittest_errplane_java_testReportBatch"+i)));
 		}
 
 //		try {
@@ -82,20 +82,19 @@ public class ErrplaneTest {
 
 		Errplane.flush();
 
-		// create a name around the 250 character limit and test for success/failure
-		String baseName = "unittest_errplane-java/testReport/nameLimits";
-		for (int i = baseName.length(); i < 246; i++) {
+		// create a name around the 255 character limit and test for success/failure
+		String baseName = "unittest_errplane_java_testReport_nameLimits";
+		for (int i = baseName.length(); i < 251; i++) {
 			baseName += "E";
 		}
 		String name = baseName + "249";
 		assertTrue("Report failed with name length " + name.length() + " characters.", Errplane.report(name));
 
-		name = baseName + "E250";
-
+		name = baseName + "E2500";
 		assertFalse("Report succeeded with name length " + name.length() +
                 " characters!", Errplane.report(name));
 
-		name = baseName + "EE251";
+		name = baseName + "EE2511";
 
 		assertFalse("Report succeeded with name length " + name.length() +
                 " characters!", Errplane.report(name));
@@ -105,45 +104,52 @@ public class ErrplaneTest {
 	}
 
 	@Test
+	public void verifyMetricName() {
+	  assertTrue("metric should be valid", Errplane.verifyMetricName("foobar"));
+	  assertTrue("metric should be valid", Errplane.verifyMetricName("foobar09_."));
+	  assertFalse("metric shouldn't be valid", Errplane.verifyMetricName("foo/bar"));
+	}
+
+	@Test
 	public void aggregate() {
 	  assertTrue("Aggregate failed!",
-               Errplane.aggregate("unittest_errplane-java/testAggregate", 100.0));
+               Errplane.aggregate("unittest_errplane_java_testAggregate", 100.0));
 	}
 
 	@Test
 	public void sum() {
 	  assertTrue("Sum failed!",
-               Errplane.sum("unittest_errplane-java/testSum", 100.0));
+               Errplane.sum("unittest_errplane_java_testSum", 100.0));
 	}
 
 	@Test
 	public void reportStringInt() {
 		assertTrue("Report with name and int failed!",
-               Errplane.report("unittest_errplane-java/testReportInt", 12345));
+               Errplane.report("unittest_errplane_java_testReportInt", 12345));
 	}
 
 	@Test
 	public void reportStringDouble() {
 		assertTrue("Report with name and double failed!",
-               Errplane.report("unittest_errplane-java/testReportDouble", 123.45));
+               Errplane.report("unittest_errplane_java_testReportDouble", 123.45));
 	}
 
 	@Test
 	public void reportStringString() {
 		assertTrue("Report with name and context failed!",
-               Errplane.report("unittest_errplane-java/testReportContext", "login"));
+               Errplane.report("unittest_errplane_java_testReportContext", "login"));
 	}
 
 	@Test
 	public void reportStringIntString() {
 		assertTrue("Report with name, int, and context failed!",
-               Errplane.report("unittest_errplane-java/testReportIntContext", 2557325, "volume"));
+               Errplane.report("unittest_errplane_java_testReportIntContext", 2557325, "volume"));
 	}
 
 	@Test
 	public void reportStringDoubleString() {
 		assertTrue("Report with name, double, and context failed!",
-               Errplane.report("unittest_errplane-java/testReportDoubleContext", 1174.3, "mssgs/s"));
+               Errplane.report("unittest_errplane_java_testReportDoubleContext", 1174.3, "mssgs/s"));
 	}
 
 	@Test
@@ -205,25 +211,25 @@ public class ErrplaneTest {
 		assertNull("", tt);
 
 		// create a name around the 250 character limit and test for success/failure
-		String baseName = "unittest_errplane-java/testStartTimer/nameLimits";
-		for (int i = baseName.length(); i < 246; i++) {
+		String baseName = "unittest_errplane_java_testStartTimer_nameLimits";
+		for (int i = baseName.length(); i < 251; i++) {
 			baseName += "E";
 		}
 		String name = baseName + "249";
 		tt = Errplane.startTimer(name);
 		assertNotNull("startTimer failed with name length " + name.length() + " characters.", tt);
 
-		name = baseName + "E250";
+		name = baseName + "E2500";
 
 		tt = Errplane.startTimer(name);
 		assertNull("startTimer succeeded with name length " + name.length() + " characters.", tt);
 
-		name = baseName + "EE251";
+		name = baseName + "EE2511";
 
 		tt = Errplane.startTimer(name);
 		assertNull("startTimer succeeded with name length " + name.length() + " characters.", tt);
 
-		tt = Errplane.startTimer("unittest_errplane-java/timerTest");
+		tt = Errplane.startTimer("unittest_errplane_java_timerTest");
 		assertNotNull("TimerTask is null!", tt);
 		try {
 			Thread.sleep(555);

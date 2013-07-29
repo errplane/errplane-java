@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Pattern;
 
 import com.errplane.http.HTTPPostHelper;
 import com.errplane.util.ExceptionHelper;
@@ -31,6 +32,8 @@ import com.errplane.util.ReportHelper;
 public class Errplane {
 
   private static final String EXCEPTIONS_TIMESERIES = "exceptions";
+
+  private static final Pattern METRIC_NAME_REGEX = Pattern.compile("^[a-zA-Z0-9._]+$");
 
   private static AtomicInteger reportCount = new AtomicInteger(0);
 
@@ -304,6 +307,32 @@ public class Errplane {
   }
 
   /**
+   * throws an {@link IllegalArgumentException} if the metricName is longer than 255 characters
+   * or if the metric name contains characters other than alphanumeric characters, period or
+   * underscore.
+   *
+   * @param metricName the name to validate
+   */
+  public static boolean verifyMetricName(String metricName) {
+    if (metricName == null) {
+      System.err.println("Metric name cannot be null");
+      return false;
+    }
+
+    if (metricName.length() > 255) {
+      System.err.println("Metric names cannot be longer than 255 characters");
+      return false;
+    }
+
+    if (!METRIC_NAME_REGEX.matcher(metricName).matches()) {
+      System.err.println("Invalid metric name " + metricName + ". See docs for valid metric names");
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
      Posts a datapoint with the value specified to the timeline[s] specified.
      @param name the name[s] of the timeline[s] to post the data point to.
      @param value the int value to post to the timeline.
@@ -363,7 +392,7 @@ public class Errplane {
      Posts a datapoint with a value, context and dimensions
   */
   public static boolean report(String name, double value, String context, Map<String, String> dimensions) {
-    if ((name == null) || (name.length() >= 250)) {
+    if (!verifyMetricName(name)) {
       return false;
     }
 
@@ -447,6 +476,10 @@ public class Errplane {
   }
 
   private static boolean sendUdpCommon(String reportType, String name, double value, String context, Map<String, String> dimensions) {
+    if (!verifyMetricName(name)) {
+      return false;
+    }
+
     // example
     // {"a":"962cdc9b-15e7-4b25-9a0d-24a45cfc6bc1","d":"app4you2lovestaging","o":"t","w":[{"n":"some_aggregate","p":[{"c":"","d":null,"v":30.091186058528706}]}]}
 
@@ -498,7 +531,7 @@ public class Errplane {
    * @return true if Errplane reported successfully.
    */
   public static TimerTask startTimer(String name) {
-    if ((name == null) || (name.length() >= 250)) {
+    if (!verifyMetricName(name)) {
       return null;
     }
     return (new TimerTask(name));
