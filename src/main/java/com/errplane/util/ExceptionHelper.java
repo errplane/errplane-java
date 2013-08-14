@@ -69,7 +69,6 @@ public class ExceptionHelper {
 	public Map<String, String> createExceptionDimensions() {
 	  HashMap<String, String> dimensions = new HashMap<String, String>();
 	  dimensions.put("class", reportException.getClass().getName());
-	  dimensions.put("Class", reportException.getClass().getName());
 	  dimensions.put("server", hostname);
 	  dimensions.put("status", "open");
 	  return dimensions;
