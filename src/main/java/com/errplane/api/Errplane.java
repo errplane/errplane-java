@@ -279,13 +279,26 @@ public class Errplane {
   /**
    * Convenience method for creating a ExceptionData object for use in an
    * Exception report.
-   * @param c the controller where the Exception occurred
-   * @param a the action where the Exception occurred
    * @param u the user agent that initiated the Exception
+   * @param m the method name, this can be any string that describe the nature of the request that was being processed
    * @return a new ExceptionData object to pass along to the Exception report
    */
+  public static ExceptionData getExceptionData(String u, String m) {
+    return new ExceptionData("", "", u, m);
+  }
+
+  /**
+   * Convenience method for creating a ExceptionData object for use in an
+   * Exception report.
+   * @deprecated use {@link #getExceptionData(String, String)} instead
+   * @param c the controller where the Exception occurred (this is deprecated use m instead)
+   * @param a the action where the Exception occurred (this is deprecated use m instead)
+   * @param m the method name, this can be any string that describe the nature of the request that was being processed
+   * @return a new ExceptionData object to pass along to the Exception report
+   */
+  @Deprecated
   public static ExceptionData getExceptionData(String c, String a, String u) {
-    return new ExceptionData(c, a, u);
+    return new ExceptionData(c, a, u, "");
   }
 
   private static void addReportHelper(String name, double val, String context, Map<String, String> dimensions) {
